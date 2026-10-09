@@ -1,0 +1,462 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aidoc.dev/schema/0.1/manifest.json",
+  "title": "aidoc 0.1 manifest",
+  "description": "Content of the <script type=\"application/aidoc-manifest+json\" id=\"aidoc-manifest\"> data block. Licence: CC BY 4.0.",
+  "type": "object",
+  "required": [
+    "aidoc",
+    "title",
+    "language",
+    "created",
+    "runtime",
+    "csp",
+    "embedder",
+    "privacy",
+    "provenance",
+    "sections",
+    "counts",
+    "blocks",
+    "sizes",
+    "thresholds"
+  ],
+  "properties": {
+    "aidoc": {
+      "const": "0.1"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "language": {
+      "$ref": "#/$defs/bcp47"
+    },
+    "created": {
+      "$ref": "#/$defs/date"
+    },
+    "modified": {
+      "$ref": "#/$defs/date"
+    },
+    "authors": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "runtime": {
+      "type": "object",
+      "required": [
+        "version",
+        "sha256"
+      ],
+      "properties": {
+        "version": {
+          "$ref": "#/$defs/semver"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256b64"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "csp": {
+      "type": "object",
+      "required": [
+        "profile"
+      ],
+      "properties": {
+        "profile": {
+          "const": "text"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "embedder": {
+      "type": "object",
+      "required": [
+        "id",
+        "license",
+        "dims",
+        "dtype",
+        "vocabSize",
+        "pca",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "dims": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024
+        },
+        "dtype": {
+          "const": "int8"
+        },
+        "vocabSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "pca": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256b64"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "offlineRequired",
+        "allowCloudAI"
+      ],
+      "properties": {
+        "offlineRequired": {
+          "const": true
+        },
+        "allowCloudAI": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "generatedContent",
+        "generatedBy"
+      ],
+      "properties": {
+        "generatedContent": {
+          "enum": [
+            "none",
+            "author-reviewed",
+            "unreviewed"
+          ]
+        },
+        "generatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "generatedAt": {
+          "$ref": "#/$defs/date"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5000,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "level"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/sectionId"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6
+          }
+        },
+        "patternProperties": {
+          "^x-": true
+        },
+        "additionalProperties": false
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "chunks",
+        "faq",
+        "quiz",
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "chunks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20000
+        },
+        "faq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "quiz": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "nodes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5000
+        },
+        "edges": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20000
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "blocks": {
+      "type": "object",
+      "required": [
+        "chunks",
+        "vectors",
+        "embedder"
+      ],
+      "properties": {
+        "chunks": {
+          "$ref": "#/$defs/blockRef"
+        },
+        "bm25": {
+          "$ref": "#/$defs/blockRef"
+        },
+        "vectors": {
+          "$ref": "#/$defs/blockRef"
+        },
+        "embedder": {
+          "$ref": "#/$defs/blockRef"
+        },
+        "generated": {
+          "$ref": "#/$defs/blockRef"
+        },
+        "graph": {
+          "$ref": "#/$defs/blockRef"
+        }
+      },
+      "patternProperties": {
+        "^x-[a-z0-9-]+$": {
+          "$ref": "#/$defs/blockRef"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sizes": {
+      "type": "object",
+      "required": [
+        "content",
+        "images",
+        "chunks",
+        "bm25",
+        "vectors",
+        "embedder",
+        "generated",
+        "graph",
+        "runtime",
+        "style",
+        "total"
+      ],
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "images": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "chunks": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "bm25": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "vectors": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "embedder": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "generated": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "graph": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "runtime": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "style": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "total": {
+          "$ref": "#/$defs/byteCount"
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    },
+    "thresholds": {
+      "type": "object",
+      "required": [
+        "outOfScope",
+        "faqMatch",
+        "cosRef"
+      ],
+      "properties": {
+        "outOfScope": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "faqMatch": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "cosRef": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "Cosine at which the semantic factor of the in-scope score saturates (spec §15.5)."
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": {
+    "^x-": true
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256b64": {
+      "description": "SHA-256 digest, standard base64 with padding (44 characters).",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]{43}=$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "bcp47": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$"
+    },
+    "date": {
+      "description": "RFC 3339 full-date or date-time.",
+      "type": "string",
+      "anyOf": [
+        {
+          "format": "date"
+        },
+        {
+          "format": "date-time"
+        }
+      ]
+    },
+    "sectionId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "byteCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 52428800
+    },
+    "blockRef": {
+      "type": "object",
+      "required": [
+        "sha256",
+        "bytes",
+        "encoding",
+        "compression"
+      ],
+      "properties": {
+        "sha256": {
+          "$ref": "#/$defs/sha256b64"
+        },
+        "bytes": {
+          "$ref": "#/$defs/byteCount"
+        },
+        "encoding": {
+          "enum": [
+            "json",
+            "base64"
+          ]
+        },
+        "compression": {
+          "enum": [
+            "none",
+            "gzip"
+          ]
+        }
+      },
+      "patternProperties": {
+        "^x-": true
+      },
+      "additionalProperties": false
+    }
+  }
+}

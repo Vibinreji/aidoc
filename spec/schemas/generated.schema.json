@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aidoc.dev/schema/0.1/generated.json",
+  "title": "aidoc 0.1 generated content",
+  "description": "Pre-generated, author-reviewable content. Used both for the authoring source file (generated.json) and for the packaged application/aidoc-generated+json data block. Cross-references (section ids, answerIndex range, id uniqueness) are checked by validators. Licence: CC BY 4.0.",
+  "type": "object",
+  "required": ["aidoc", "provenance"],
+  "properties": {
+    "aidoc": { "const": "0.1" },
+    "provenance": {
+      "type": "object",
+      "required": ["generatedBy", "reviewed", "created"],
+      "properties": {
+        "generatedBy": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "model": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "reviewed": { "type": "boolean" },
+        "reviewedBy": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "created": { "$ref": "#/$defs/date" }
+      },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false
+    },
+    "sections": {
+      "type": "object",
+      "maxProperties": 5000,
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/sectionContent" }
+    },
+    "faq": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": { "$ref": "#/$defs/faqItem" }
+    }
+  },
+  "patternProperties": { "^x-": true },
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$" },
+    "date": {
+      "type": "string",
+      "anyOf": [{ "format": "date" }, { "format": "date-time" }]
+    },
+    "sectionContent": {
+      "type": "object",
+      "properties": {
+        "summary": { "type": "string", "minLength": 1, "maxLength": 10000 },
+        "simpleExplanation": { "type": "string", "minLength": 1, "maxLength": 10000 },
+        "keyPoints": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "quiz": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/quizItem" }
+        }
+      },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false
+    },
+    "quizItem": {
+      "type": "object",
+      "required": ["id", "question", "options", "answerIndex", "explanation"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "question": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        },
+        "answerIndex": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "explanation": { "type": "string", "minLength": 1, "maxLength": 5000 }
+      },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false
+    },
+    "faqItem": {
+      "type": "object",
+      "required": ["id", "question", "answer", "sourceSectionIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "question": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "alternateQuestions": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "type": "string", "minLength": 1, "maxLength": 1000 }
+        },
+        "answer": { "type": "string", "minLength": 1, "maxLength": 5000 },
+        "sourceSectionIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false
+    }
+  }
+}

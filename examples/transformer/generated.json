@@ -1,0 +1,1412 @@
+{
+  "aidoc": "0.1",
+  "provenance": {
+    "generatedBy": "claude-code",
+    "model": "claude-opus-5-5",
+    "reviewed": false,
+    "created": "2026-10-08"
+  },
+  "sections": {
+    "overview": {
+      "summary": "The Transformer, introduced in 2017 in \"Attention Is All You Need\", replaced the step-by-step processing of recurrent networks with attention, which lets every position look directly at every other position. Because these comparisons can run in parallel on GPUs, much larger models could be trained on much more data. Data flows through tokens, embeddings, positional encoding, attention with queries, keys and values, multi-head attention, feed-forward networks, residual connections and layer normalization, stacked Transformer blocks, and, during generation, the KV cache. Most modern text generators use only the decoder half of the original encoder-decoder design.",
+      "simpleExplanation": "Older language models read a sentence one word at a time, like reading through a keyhole, so they were slow and forgot early words. A Transformer looks at all the words at once and lets each word decide which other words matter to it. Because it can do all of that at the same time, computers can train it quickly and make it very big. That is why almost every modern AI that writes text is a Transformer.",
+      "keyPoints": [
+        "The Transformer was introduced in 2017 in \"Attention Is All You Need\".",
+        "It replaced recurrence with attention, so every position can look at every other position directly.",
+        "Attention computations run in parallel, which made training much larger models practical.",
+        "Most chat and text-generation models (GPT, Llama) are decoder-only and predict the next token.",
+        "The original Transformer had an encoder and a decoder, designed for machine translation."
+      ],
+      "quiz": [
+        {
+          "id": "q-overview-1",
+          "question": "What did the Transformer replace recurrence with?",
+          "options": [
+            "Convolution",
+            "Decision trees",
+            "Attention",
+            "Word counting"
+          ],
+          "answerIndex": 2,
+          "explanation": "The Transformer replaced the step-by-step recurrence of RNNs with attention, letting every position look directly at every other position."
+        },
+        {
+          "id": "q-overview-2",
+          "question": "Why could Transformers be trained at a much larger scale than RNNs?",
+          "options": [
+            "Their attention computations can run in parallel",
+            "They use fewer parameters",
+            "They don't need training data",
+            "They only read the first word of each sentence"
+          ],
+          "answerIndex": 0,
+          "explanation": "RNNs had to wait for each previous step. The comparisons in attention are independent, so they can all be computed at once on a GPU."
+        },
+        {
+          "id": "q-overview-3",
+          "question": "Which part of the original Transformer do most modern text-generation models use?",
+          "options": [
+            "Only the encoder",
+            "Only the decoder",
+            "Both encoder and decoder",
+            "Neither; they use RNNs"
+          ],
+          "answerIndex": 1,
+          "explanation": "Models like GPT and Llama are decoder-only: they predict the next token from all previous tokens."
+        }
+      ]
+    },
+    "tokens": {
+      "summary": "Models work with numbers, so text is first split into tokens, each with an integer ID from a fixed vocabulary. Character-level tokens make sequences too long, and whole-word tokens need a huge vocabulary and fail on unseen words, so modern models use subword tokenization: common words are single tokens and rare words are built from pieces. The main algorithms are Byte-Pair Encoding (used by GPT), WordPiece (used by BERT, with ## continuation pieces) and Unigram/SentencePiece. Vocabulary size trades shorter sequences against larger embedding and output layers. Tokenization explains why models struggle with letter-level tasks; in English one token is roughly four characters.",
+      "simpleExplanation": "Before a model can read text, it chops the text into small pieces called tokens and gives each piece a number. Common words like \"the\" are one piece. Long or unusual words are built from smaller pieces, like building a word out of LEGO bricks. This way the model never meets a word it can't handle. Because the model sees pieces and not letters, it can find it oddly hard to count the letters in a word.",
+      "keyPoints": [
+        "A tokenizer splits text into tokens and maps each to an integer ID in the vocabulary.",
+        "Subword tokenization balances vocabulary size against sequence length and handles unseen words.",
+        "Byte-Pair Encoding merges frequent pairs; WordPiece marks word continuations with ##; SentencePiece works on raw text including spaces.",
+        "Bigger vocabularies mean shorter sequences but larger embedding and output matrices.",
+        "Special tokens mark things like the start or end of a sequence and chat roles.",
+        "In English, one token is about four characters, or three quarters of a word."
+      ],
+      "quiz": [
+        {
+          "id": "q-tokens-1",
+          "question": "Why don't modern models use whole words as tokens?",
+          "options": [
+            "The vocabulary would be huge and unseen words would be unknown",
+            "Words are too short",
+            "Words cannot be turned into numbers",
+            "GPUs cannot process words"
+          ],
+          "answerIndex": 0,
+          "explanation": "Whole-word vocabularies need millions of entries and turn any unseen word into an unknown token. Subwords avoid both problems."
+        },
+        {
+          "id": "q-tokens-2",
+          "question": "Which tokenizer marks continuation pieces with a prefix like ##?",
+          "options": [
+            "WordPiece",
+            "Byte-Pair Encoding",
+            "Character-level",
+            "Sinusoidal"
+          ],
+          "answerIndex": 0,
+          "explanation": "WordPiece, used by BERT, writes pieces that continue a word with a ## prefix, for example \"play\" + \"##ing\"."
+        },
+        {
+          "id": "q-tokens-3",
+          "question": "What is a downside of a very large vocabulary?",
+          "options": [
+            "Sequences become longer",
+            "The embedding table and output layer become larger",
+            "The model cannot handle English",
+            "Attention stops working"
+          ],
+          "answerIndex": 1,
+          "explanation": "A larger vocabulary shortens sequences but needs more rows in the embedding table and the final output layer."
+        },
+        {
+          "id": "q-tokens-4",
+          "question": "Roughly how many characters is one English token?",
+          "options": [
+            "1",
+            "4",
+            "20",
+            "100"
+          ],
+          "answerIndex": 1,
+          "explanation": "As a rough rule, one English token is about four characters, or three quarters of a word."
+        }
+      ]
+    },
+    "embeddings": {
+      "summary": "An embedding turns each token ID into a learned vector of d_model numbers by looking up a row in an embedding table with one row per vocabulary token. The values start random and are learned in training, so tokens used in similar contexts end up close together in a semantic space. d_model is the width of the residual stream: 512 in the original Transformer, 768 in GPT-2 small, and thousands in large models. Input embeddings are context-free; later layers turn them into contextual representations. At the output, a similar matrix produces logits over the vocabulary, often tied to the input embeddings.",
+      "simpleExplanation": "An embedding is like giving every token a home address on a giant map with hundreds of directions instead of two. Words that are used in similar ways, like \"cat\" and \"dog\", end up living near each other. The model learns where to put each word while it trains. At first a word has the same address in every sentence; the layers after this step adjust it based on the surrounding words.",
+      "keyPoints": [
+        "The embedding layer is a lookup table with one row (vector) per vocabulary token.",
+        "Embedding values are learned during training; similar tokens end up with similar vectors.",
+        "d_model is the size of each token's vector throughout the model.",
+        "Input embeddings ignore context; attention layers make them contextual.",
+        "The output layer turns final vectors into logits, one per vocabulary token; it is often tied to the input embedding."
+      ],
+      "quiz": [
+        {
+          "id": "q-embeddings-1",
+          "question": "What does the embedding layer do with a token ID?",
+          "options": [
+            "Runs it through attention",
+            "Looks up the row of a learned table at that index",
+            "Converts it to text",
+            "Adds a sine wave to it"
+          ],
+          "answerIndex": 1,
+          "explanation": "The embedding layer is a lookup table; embedding a token means reading the row whose index is the token ID."
+        },
+        {
+          "id": "q-embeddings-2",
+          "question": "How are embedding values chosen?",
+          "options": [
+            "Designed by hand by linguists",
+            "Copied from a dictionary",
+            "Learned during training",
+            "Set to the token ID"
+          ],
+          "answerIndex": 2,
+          "explanation": "They start random and are learned along with every other parameter."
+        },
+        {
+          "id": "q-embeddings-3",
+          "question": "Why is the input embedding of \"bank\" the same in \"river bank\" and \"bank loan\"?",
+          "options": [
+            "Because of a bug",
+            "Because the lookup doesn't know the context",
+            "Because the tokenizer removes context",
+            "It isn't; it is always different"
+          ],
+          "answerIndex": 1,
+          "explanation": "The lookup only uses the token ID. Later layers, mainly attention, create context-dependent representations."
+        },
+        {
+          "id": "q-embeddings-4",
+          "question": "What is d_model in GPT-2 small?",
+          "options": [
+            "768",
+            "64",
+            "512",
+            "50,000"
+          ],
+          "answerIndex": 0,
+          "explanation": "GPT-2 small uses d_model = 768; the original Transformer used 512."
+        }
+      ]
+    },
+    "positional-encoding": {
+      "summary": "Attention on its own ignores word order, so a Transformer needs positional information. The original model added sinusoidal encodings to the embeddings: sine and cosine waves of different frequencies that give each position a unique pattern and make relative shifts easy to represent. Alternatives include learned absolute positions (GPT-2, BERT), which cannot go beyond the trained length; relative position methods; RoPE, which rotates queries and keys so their comparison depends on relative distance (used by Llama and Mistral); and ALiBi, which penalises attention scores by distance.",
+      "simpleExplanation": "If you shuffle the words of a sentence, attention alone wouldn't notice, because it treats the words like a bag. Positional encoding is like stamping each word with its seat number before it goes in. The original Transformer made these stamps out of waves of different speeds, like clock hands. Newer models, like Llama, instead twist the vectors by an angle that depends on position, so the model can tell how far apart two words are.",
+      "keyPoints": [
+        "Without positional information, attention treats a sequence as an unordered bag of tokens.",
+        "Sinusoidal encodings use sine and cosine waves of different frequencies and are added to embeddings.",
+        "Learned absolute positions are simple but limited to the trained maximum length.",
+        "RoPE rotates queries and keys so attention depends on relative distance; it is used by Llama and Mistral.",
+        "ALiBi penalises attention scores in proportion to distance."
+      ],
+      "quiz": [
+        {
+          "id": "q-positional-encoding-1",
+          "question": "Why does a Transformer need positional encoding?",
+          "options": [
+            "To reduce memory use",
+            "To pick the next token",
+            "To split text into tokens",
+            "Because attention by itself has no sense of word order"
+          ],
+          "answerIndex": 3,
+          "explanation": "Attention compares all tokens with each other; without position information \"dog bit man\" and \"man bit dog\" look the same."
+        },
+        {
+          "id": "q-positional-encoding-2",
+          "question": "How are sinusoidal positional encodings combined with token embeddings?",
+          "options": [
+            "They are multiplied",
+            "They are added",
+            "They replace the embeddings",
+            "They are stored in the KV cache"
+          ],
+          "answerIndex": 1,
+          "explanation": "The positional vector is added to the token embedding, so the input carries both identity and position."
+        },
+        {
+          "id": "q-positional-encoding-3",
+          "question": "What does RoPE do?",
+          "options": [
+            "Adds a learned vector per position",
+            "Removes distant tokens",
+            "Normalizes the residual stream",
+            "Rotates query and key vectors by a position-dependent angle"
+          ],
+          "answerIndex": 3,
+          "explanation": "Rotary Position Embedding rotates queries and keys inside attention, so their dot product depends on relative distance."
+        },
+        {
+          "id": "q-positional-encoding-4",
+          "question": "What is a limitation of learned absolute positions?",
+          "options": [
+            "They can't handle sequences longer than the trained maximum",
+            "They are very slow",
+            "They only work for English",
+            "They need a KV cache"
+          ],
+          "answerIndex": 0,
+          "explanation": "A learned vector exists only for each position seen in training, so longer sequences have no position vectors."
+        }
+      ]
+    },
+    "attention": {
+      "summary": "Attention lets each token gather information from other tokens, weighted by content-based relevance: it scores every allowed token, normalizes the scores with softmax, and takes a weighted average. Self-attention means tokens attend within the same sequence; cross-attention, in encoder-decoder models, lets the decoder attend to the encoder output. Generative models use a causal mask so tokens cannot see later positions, while encoders like BERT are bidirectional. Attention connects any two tokens in one step, but its cost grows with the square of the sequence length, motivating methods like FlashAttention and sliding-window attention.",
+      "simpleExplanation": "Attention is how each word looks around the sentence and decides who to listen to. In \"The animal didn't cross the street because it was too tired\", the word \"it\" pays the most attention to \"animal\". Each word gives every other word a score, turns the scores into percentages that add up to 100%, and mixes in information using those percentages. When writing text, a word is only allowed to look backwards, never at words that haven't been written yet.",
+      "keyPoints": [
+        "Attention scores relevance, normalizes with softmax, then takes a weighted average.",
+        "Self-attention: tokens attend to tokens in the same sequence. Cross-attention: decoder attends to encoder output.",
+        "A causal mask stops generative models from seeing future tokens.",
+        "Any token can reach any other in a single step, unlike in RNNs.",
+        "Attention cost grows quadratically with sequence length."
+      ],
+      "quiz": [
+        {
+          "id": "q-attention-1",
+          "question": "What does the softmax step in attention do?",
+          "options": [
+            "Turns scores into positive weights that sum to 1",
+            "Splits text into tokens",
+            "Adds position information",
+            "Removes the residual connection"
+          ],
+          "answerIndex": 0,
+          "explanation": "Softmax converts raw relevance scores into weights between 0 and 1 that add up to 1."
+        },
+        {
+          "id": "q-attention-2",
+          "question": "What is the purpose of the causal mask?",
+          "options": [
+            "To hide padding tokens only",
+            "To speed up the feed-forward network",
+            "To stop a token from attending to later tokens",
+            "To compress the KV cache"
+          ],
+          "answerIndex": 2,
+          "explanation": "The causal mask sets scores for future positions to minus infinity, so a token cannot use information it is supposed to predict."
+        },
+        {
+          "id": "q-attention-3",
+          "question": "If the context length doubles, roughly how does the cost of attention scores change?",
+          "options": [
+            "It quadruples",
+            "It stays the same",
+            "It doubles",
+            "It halves"
+          ],
+          "answerIndex": 0,
+          "explanation": "Every token is compared with every other token, so the cost grows with the square of the length."
+        },
+        {
+          "id": "q-attention-4",
+          "question": "In which kind of attention do queries come from the decoder and keys and values from the encoder?",
+          "options": [
+            "Self-attention",
+            "Cross-attention",
+            "Causal attention",
+            "Sliding-window attention"
+          ],
+          "answerIndex": 1,
+          "explanation": "Cross-attention connects the decoder to the encoder's output in encoder-decoder models."
+        }
+      ]
+    },
+    "qkv": {
+      "summary": "Attention gives each token three learned projections: a query (what it is looking for), a key (what it offers to be matched on) and a value (the information it passes on). They are produced by multiplying the token vector by matrices W_Q, W_K and W_V. Attention(Q, K, V) = softmax(Q·Kᵀ / √d_k)·V: dot products of queries and keys give relevance scores, division by √d_k keeps the scores from growing too large and saturating the softmax, softmax gives weights, and the output is a weighted sum of values. Separate projections let a token's matching role differ from the information it contributes.",
+      "simpleExplanation": "Think of a library. Your query is what you're looking for. Every book has a key, the label on its spine. You compare your query with all the labels to find the best matches, and then you read the values, the actual contents of those books. In a Transformer every word makes all three: a question it asks, a label it shows to others, and the information it shares if it gets picked.",
+      "keyPoints": [
+        "Query: what a token is looking for. Key: what a token can be matched on. Value: the information it passes on.",
+        "Q, K and V are made by multiplying the token vector by learned matrices W_Q, W_K and W_V.",
+        "Attention(Q, K, V) = softmax(Q·Kᵀ / √d_k)·V.",
+        "Scaling by √d_k stops large dot products from saturating the softmax and shrinking gradients.",
+        "In self-attention Q, K and V come from the same sequence; in cross-attention K and V come from another one."
+      ],
+      "quiz": [
+        {
+          "id": "q-qkv-1",
+          "question": "In the library analogy, what corresponds to the key?",
+          "options": [
+            "The label describing each book",
+            "The question you ask",
+            "The contents of each book",
+            "The librarian"
+          ],
+          "answerIndex": 0,
+          "explanation": "Keys are like spine labels: they are compared with the query to decide relevance. The values are the contents."
+        },
+        {
+          "id": "q-qkv-2",
+          "question": "Why are attention scores divided by √d_k?",
+          "options": [
+            "To prevent large dot products from saturating the softmax",
+            "To make them integers",
+            "To add positional information",
+            "To reduce the vocabulary size"
+          ],
+          "answerIndex": 0,
+          "explanation": "Dot products grow with dimension; without scaling the softmax becomes nearly one-hot and its gradients become tiny."
+        },
+        {
+          "id": "q-qkv-3",
+          "question": "What is the output of attention for a token?",
+          "options": [
+            "The largest key",
+            "The query vector unchanged",
+            "A weighted sum of value vectors",
+            "The token ID"
+          ],
+          "answerIndex": 2,
+          "explanation": "The softmax weights are used to average the value vectors of the attended tokens."
+        },
+        {
+          "id": "q-qkv-4",
+          "question": "Where do the query, key and value vectors come from?",
+          "options": [
+            "From multiplying token vectors by learned matrices W_Q, W_K, W_V",
+            "They are fixed by the tokenizer",
+            "From the KV cache only",
+            "From positional encodings only"
+          ],
+          "answerIndex": 0,
+          "explanation": "Each is a learned linear projection of the token's current vector."
+        },
+        {
+          "id": "q-qkv-5",
+          "question": "Why use separate key and value projections?",
+          "options": [
+            "It is required by softmax",
+            "What makes a token relevant can differ from the information it should contribute",
+            "To save memory",
+            "Keys are for training and values for generation"
+          ],
+          "answerIndex": 1,
+          "explanation": "Separate projections let the model learn matching (keys) independently of content passed along (values)."
+        }
+      ]
+    },
+    "multi-head-attention": {
+      "summary": "Multi-head attention runs several attention heads in parallel, each with its own Q, K and V projections in a smaller dimension (for example 12 heads of 64 dimensions when d_model is 768). Head outputs are concatenated and mixed by an output projection W_O. The cost is about the same as one full-width head, but the model can follow several relationships at once; some heads appear to specialise, for example in syntax or in induction-style copying. Multi-query attention (MQA) and grouped-query attention (GQA) share key and value heads across query heads to shrink the KV cache; GQA is used in Llama 2 70B and Llama 3.",
+      "simpleExplanation": "One attention head can only focus on one kind of relationship at a time. Multi-head attention is like having a team of readers going over the same sentence: one tracks grammar, one looks at the previous word, one watches for repeated patterns. Each reader works in a smaller notebook, and at the end their notes are put together into one result.",
+      "keyPoints": [
+        "Multiple attention heads run in parallel, each with its own Q, K and V matrices.",
+        "Each head works in a smaller dimension, d_model ÷ number of heads.",
+        "Head outputs are concatenated and mixed by an output projection W_O.",
+        "Heads can specialise, e.g. syntax, previous-token or induction heads.",
+        "MQA and GQA share key/value heads to reduce KV cache memory."
+      ],
+      "quiz": [
+        {
+          "id": "q-multi-head-attention-1",
+          "question": "If d_model is 768 and there are 12 heads, what is each head's dimension?",
+          "options": [
+            "12",
+            "768",
+            "9,216",
+            "64"
+          ],
+          "answerIndex": 3,
+          "explanation": "768 ÷ 12 = 64."
+        },
+        {
+          "id": "q-multi-head-attention-2",
+          "question": "What happens to the outputs of all heads?",
+          "options": [
+            "They are concatenated and multiplied by W_O",
+            "Only the best head is kept",
+            "They are averaged and discarded",
+            "They are written to the tokenizer"
+          ],
+          "answerIndex": 0,
+          "explanation": "Head outputs are concatenated back to d_model and mixed by the output projection W_O."
+        },
+        {
+          "id": "q-multi-head-attention-3",
+          "question": "What is the main benefit of multiple heads?",
+          "options": [
+            "They make attention cost quadratically less",
+            "They remove the need for positional encoding",
+            "They let the model attend to different relationships at the same time",
+            "They replace the feed-forward network"
+          ],
+          "answerIndex": 2,
+          "explanation": "Each head can learn a different pattern of relevance, at about the same cost as one full-width head."
+        },
+        {
+          "id": "q-multi-head-attention-4",
+          "question": "In grouped-query attention (GQA), what is shared?",
+          "options": [
+            "Query heads share one key/value head per group",
+            "All layers share one head",
+            "Tokens share embeddings",
+            "Heads share the same output"
+          ],
+          "answerIndex": 0,
+          "explanation": "Groups of query heads share a key head and a value head, shrinking the KV cache."
+        }
+      ]
+    },
+    "feed-forward": {
+      "summary": "The feed-forward network (FFN or MLP) is applied to each token independently. It expands the vector, usually to four times d_model, applies a non-linear activation (ReLU originally, GELU in GPT-2 and BERT, gated variants such as SwiGLU in many recent models) and projects back to d_model. The FFN holds roughly two thirds of each block's parameters and appears to work partly as a key-value memory that stores factual knowledge. Attention communicates between tokens; the FFN computes on each token. Mixture-of-experts models use many FFNs and route each token to only one or two.",
+      "simpleExplanation": "After the words have talked to each other in attention, each word goes off on its own to think. That thinking step is the feed-forward network: a small network that blows the word's vector up into a bigger space, processes it, and shrinks it back. It is where the model seems to keep a lot of its knowledge, like a big lookup of facts.",
+      "keyPoints": [
+        "The FFN processes each token independently, with no communication between positions.",
+        "It expands to a hidden size (often 4× d_model), applies an activation, and projects back.",
+        "Activations: ReLU (original), GELU (GPT-2, BERT), SwiGLU (many recent models).",
+        "It holds about two thirds of a block's parameters and seems to store factual knowledge.",
+        "Mixture of experts routes each token to a few of many FFNs."
+      ],
+      "quiz": [
+        {
+          "id": "q-feed-forward-1",
+          "question": "How does the feed-forward network differ from attention?",
+          "options": [
+            "It processes each token on its own",
+            "It compares every token with every other",
+            "It only runs during training",
+            "It produces the KV cache"
+          ],
+          "answerIndex": 0,
+          "explanation": "Attention moves information between tokens; the FFN is applied to each position independently."
+        },
+        {
+          "id": "q-feed-forward-2",
+          "question": "What is the typical hidden size of a classic FFN?",
+          "options": [
+            "About 4 × d_model",
+            "Half of d_model",
+            "Equal to d_model",
+            "The vocabulary size"
+          ],
+          "answerIndex": 0,
+          "explanation": "The first layer usually expands to four times d_model, for example 768 → 3,072."
+        },
+        {
+          "id": "q-feed-forward-3",
+          "question": "Roughly what share of a standard block's parameters are in the FFN?",
+          "options": [
+            "About one tenth",
+            "About one third",
+            "All of them",
+            "About two thirds"
+          ],
+          "answerIndex": 3,
+          "explanation": "With a 4× expansion the FFN has about 8·d_model² parameters versus about 4·d_model² for attention."
+        },
+        {
+          "id": "q-feed-forward-4",
+          "question": "What does a mixture-of-experts layer do?",
+          "options": [
+            "Runs every expert on every token",
+            "Replaces attention with experts",
+            "Routes each token to one or two of many FFNs",
+            "Merges all heads into one"
+          ],
+          "answerIndex": 2,
+          "explanation": "A router picks a few experts per token, increasing capacity without proportionally increasing computation."
+        }
+      ]
+    },
+    "residuals-layer-norm": {
+      "summary": "Residual connections add each sub-layer's output to its input (x = x + SubLayer(x)), so layers compute updates rather than replacements and gradients flow directly through the additions. This creates the residual stream, a per-token vector that every sub-layer reads from and writes to. Layer normalization rescales each token's vector to zero mean and unit variance, then applies a learned scale and shift. The original Transformer used post-LN; GPT-2 and most modern models use pre-LN, which normalizes sub-layer inputs and trains deep models more easily. Llama uses RMSNorm, which only rescales by the root mean square.",
+      "simpleExplanation": "Imagine a shared notebook passed up through every layer of the model. Each layer reads it and adds a note, but never erases what is already there; that is a residual connection, and the notebook is the residual stream. Layer normalization keeps the numbers in the notebook at a sensible size, so nothing gets too big or too small as it passes through dozens of layers.",
+      "keyPoints": [
+        "Residual connection: x = x + SubLayer(x); sub-layers add updates instead of replacing the vector.",
+        "Residuals let gradients flow directly, avoiding vanishing gradients in deep stacks.",
+        "The residual stream is read and written by every sub-layer.",
+        "Layer norm rescales each token's vector to zero mean and unit variance, with learned scale and shift.",
+        "Pre-LN (modern) normalizes sub-layer inputs; post-LN (original) normalizes after the addition; RMSNorm skips mean subtraction."
+      ],
+      "quiz": [
+        {
+          "id": "q-residuals-layer-norm-1",
+          "question": "What does a residual connection compute?",
+          "options": [
+            "x = SubLayer(x)",
+            "x = x × SubLayer(x)",
+            "x = LayerNorm(x) only",
+            "x = x + SubLayer(x)"
+          ],
+          "answerIndex": 3,
+          "explanation": "The sub-layer's output is added to its input, so it acts as an update."
+        },
+        {
+          "id": "q-residuals-layer-norm-2",
+          "question": "Over what does layer normalization compute its statistics?",
+          "options": [
+            "Across all tokens in the batch",
+            "Across the d_model values of a single token",
+            "Across the vocabulary",
+            "Across all layers"
+          ],
+          "answerIndex": 1,
+          "explanation": "Layer norm is computed separately for each token, across that token's vector."
+        },
+        {
+          "id": "q-residuals-layer-norm-3",
+          "question": "Which placement do GPT-2 and most modern models use?",
+          "options": [
+            "Post-LN",
+            "No normalization",
+            "Pre-LN",
+            "Normalization only at the input"
+          ],
+          "answerIndex": 2,
+          "explanation": "Pre-LN normalizes the input of each sub-layer, which makes deep models easier to train."
+        },
+        {
+          "id": "q-residuals-layer-norm-4",
+          "question": "How does RMSNorm differ from LayerNorm?",
+          "options": [
+            "It normalizes across tokens",
+            "It has no learned parameters at all",
+            "It is only used in the KV cache",
+            "It does not subtract the mean"
+          ],
+          "answerIndex": 3,
+          "explanation": "RMSNorm only rescales by the root mean square, without subtracting the mean."
+        }
+      ]
+    },
+    "transformer-block": {
+      "summary": "A Transformer block combines the parts: in the pre-LN design, x = x + MultiHeadAttention(LayerNorm(x)), then x = x + FeedForward(LayerNorm(x)). Input and output have the same shape, so blocks are stacked: 12 in GPT-2 small, up to more than 100 in large models. A decoder-only model is token embedding, N blocks, a final layer norm and an output projection (LM head) with softmax. Training predicts every position in parallel using the causal mask and cross-entropy; generation produces one token at a time by sampling and appending. A block has roughly 12 × d_model² parameters; GPT-2 small totals about 124 million.",
+      "simpleExplanation": "A Transformer block is one floor of a tall building. On each floor, the words first talk to each other (attention) and then each word thinks on its own (feed-forward), with tidying (layer norm) and note-keeping (residuals) along the way. Every floor has the same shape, so you can stack as many as you like. Big models have dozens of floors. At the top, the model guesses the next word.",
+      "keyPoints": [
+        "Pre-LN block: x = x + Attention(LN(x)); x = x + FFN(LN(x)).",
+        "Blocks keep the same shape (d_model per token), so they can be stacked N times.",
+        "Full model: embedding → N blocks → final layer norm → LM head → softmax.",
+        "Training predicts all positions in parallel; generation adds one token at a time.",
+        "Each block has about 12 × d_model² parameters; GPT-2 small has about 124M in total."
+      ],
+      "quiz": [
+        {
+          "id": "q-transformer-block-1",
+          "question": "Which two sub-layers make up a Transformer block?",
+          "options": [
+            "Tokenizer and embedding",
+            "Two embedding tables",
+            "KV cache and softmax",
+            "Multi-head attention and a feed-forward network"
+          ],
+          "answerIndex": 3,
+          "explanation": "Each block has a multi-head attention sub-layer followed by a feed-forward sub-layer, each with a residual connection and normalization."
+        },
+        {
+          "id": "q-transformer-block-2",
+          "question": "Why can Transformer blocks be stacked?",
+          "options": [
+            "They share weights",
+            "They have no parameters",
+            "Their input and output have the same shape",
+            "They each use a different vocabulary"
+          ],
+          "answerIndex": 2,
+          "explanation": "Each block maps one d_model vector per token to one d_model vector per token."
+        },
+        {
+          "id": "q-transformer-block-3",
+          "question": "How many blocks does GPT-2 small have?",
+          "options": [
+            "6",
+            "48",
+            "128",
+            "12"
+          ],
+          "answerIndex": 3,
+          "explanation": "GPT-2 small has 12 blocks with d_model 768."
+        },
+        {
+          "id": "q-transformer-block-4",
+          "question": "What is the approximate parameter count of one standard block?",
+          "options": [
+            "d_model",
+            "4 × d_model",
+            "vocabulary × d_model",
+            "12 × d_model²"
+          ],
+          "answerIndex": 3,
+          "explanation": "About 4·d_model² for attention projections plus 8·d_model² for a 4× feed-forward network."
+        }
+      ]
+    },
+    "kv-cache": {
+      "summary": "During generation, each new token attends to all previous tokens. Because of the causal mask, earlier tokens' keys and values never change, so the KV cache stores them per layer and reuses them: each step computes Q, K and V only for the new token, appends K and V to the cache, and attends over the cache. Queries are not cached. Generation has a compute-heavy prefill phase and a memory-bandwidth-bound decode phase. Cache size is 2 × layers × KV heads × head dimension × sequence length × bytes per value, about 0.5 MB per token for Llama 2 7B, or 2 GB for 4,096 tokens. GQA/MQA, quantization, paged attention, prefix caching and sliding windows reduce it. The cache changes speed, not results.",
+      "simpleExplanation": "When a model writes text one word at a time, it would be wasteful to re-read the whole story from scratch for every new word. The KV cache is the model's notes about every word it has already processed. For each new word, it only does the new work and checks its notes. The notes take up a lot of memory, so engineers work hard to make them smaller, but they make writing fast enough to chat with.",
+      "keyPoints": [
+        "The KV cache stores keys and values of past tokens for every layer and reuses them.",
+        "Each generation step computes Q, K, V only for the new token; queries are not cached.",
+        "Prefill processes the prompt in parallel; decode generates one token at a time and is memory-bandwidth bound.",
+        "Size = 2 × layers × KV heads × head dim × sequence length × bytes; ~0.5 MB/token for Llama 2 7B.",
+        "GQA/MQA, cache quantization, paged attention, prefix caching and sliding windows reduce its cost.",
+        "The cache speeds generation without changing the model's output."
+      ],
+      "quiz": [
+        {
+          "id": "q-kv-cache-1",
+          "question": "What problem does the KV cache solve?",
+          "options": [
+            "Tokenizing unknown words",
+            "Training on long documents",
+            "Choosing the next token",
+            "Recomputing keys and values of past tokens at every generation step"
+          ],
+          "answerIndex": 3,
+          "explanation": "Past tokens' keys and values don't change, so they are computed once and stored."
+        },
+        {
+          "id": "q-kv-cache-2",
+          "question": "Why are queries not cached?",
+          "options": [
+            "Only the newest token's query is ever used",
+            "They are too large",
+            "They are the same for every token",
+            "They are stored in the embedding table"
+          ],
+          "answerIndex": 0,
+          "explanation": "Each step compares only the new token's query with all cached keys."
+        },
+        {
+          "id": "q-kv-cache-3",
+          "question": "What usually limits the speed of the decode phase?",
+          "options": [
+            "Tokenizer speed",
+            "Disk space",
+            "Memory bandwidth",
+            "The number of quiz questions"
+          ],
+          "answerIndex": 2,
+          "explanation": "Each new token requires reading the whole cache and all model weights, so decode is memory-bandwidth bound."
+        },
+        {
+          "id": "q-kv-cache-4",
+          "question": "About how much KV cache does Llama 2 7B need for a 4,096-token context?",
+          "options": [
+            "2 MB",
+            "200 MB",
+            "200 GB",
+            "2 GB"
+          ],
+          "answerIndex": 3,
+          "explanation": "About 0.5 MB per token × 4,096 tokens ≈ 2 GB."
+        },
+        {
+          "id": "q-kv-cache-5",
+          "question": "Does using a KV cache change what the model outputs?",
+          "options": [
+            "Yes, it makes answers shorter",
+            "No, it only makes generation faster",
+            "Yes, it adds randomness",
+            "No, because it is only used in training"
+          ],
+          "answerIndex": 1,
+          "explanation": "The KV cache is a pure speed optimisation; the computed result is the same."
+        }
+      ]
+    }
+  },
+  "faq": [
+    {
+      "id": "faq-001",
+      "question": "What is a Transformer?",
+      "alternateQuestions": [
+        "What is the Transformer architecture?"
+      ],
+      "answer": "A Transformer is a neural network architecture, introduced in 2017 in \"Attention Is All You Need\", that processes text using attention instead of recurrence. Every position can look directly at every other position, and these computations run in parallel, which made it practical to train very large language models.",
+      "sourceSectionIds": [
+        "overview"
+      ]
+    },
+    {
+      "id": "faq-002",
+      "question": "Why did Transformers replace RNNs?",
+      "alternateQuestions": [
+        "What was wrong with recurrent neural networks?",
+        "Why are Transformers better than RNNs?"
+      ],
+      "answer": "RNNs read text one step at a time, so training was slow (each step waited for the previous one) and information from far-away words tended to fade. Attention lets any token reach any other token in one step, and all comparisons can be computed in parallel on GPUs.",
+      "sourceSectionIds": [
+        "overview",
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-003",
+      "question": "Who invented the Transformer?",
+      "alternateQuestions": [
+        "Which paper introduced the Transformer?",
+        "When was the Transformer introduced?"
+      ],
+      "answer": "The Transformer was introduced in 2017 by Vaswani and colleagues in the paper \"Attention Is All You Need\".",
+      "sourceSectionIds": [
+        "overview"
+      ]
+    },
+    {
+      "id": "faq-004",
+      "question": "What is the difference between an encoder and a decoder?",
+      "alternateQuestions": [
+        "What is a decoder-only model?",
+        "Encoder-decoder vs decoder-only"
+      ],
+      "answer": "The original Transformer had an encoder that read the input and a decoder that produced the output, which suited translation. Decoder-only models such as GPT and Llama keep only the decoder and are trained to predict the next token from all previous tokens. Encoder models such as BERT use bidirectional attention instead.",
+      "sourceSectionIds": [
+        "overview",
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-005",
+      "question": "What is a token?",
+      "alternateQuestions": [
+        "What are tokens?",
+        "What does tokenization mean?"
+      ],
+      "answer": "A token is a small piece of text, such as a word or part of a word, that the model treats as one unit. The tokenizer splits text into tokens and gives each an integer ID from the model's vocabulary.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-006",
+      "question": "What is subword tokenization?",
+      "alternateQuestions": [
+        "Why do models split words into pieces?"
+      ],
+      "answer": "Subword tokenization gives common words their own token and builds rare words from smaller pieces. It avoids both the very long sequences of character-level tokens and the huge vocabularies and unknown words of whole-word tokens.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-007",
+      "question": "What is Byte-Pair Encoding?",
+      "alternateQuestions": [
+        "What is BPE?",
+        "How does BPE work?"
+      ],
+      "answer": "Byte-Pair Encoding starts from single characters or bytes and repeatedly merges the most frequent adjacent pair into a new token until the vocabulary reaches a target size. GPT models use byte-level BPE, which can encode any text, including emoji and code.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-008",
+      "question": "What is WordPiece?",
+      "alternateQuestions": [
+        "What does ## mean in tokens?"
+      ],
+      "answer": "WordPiece is the subword tokenizer used by BERT. It chooses merges that most increase the likelihood of the training data, and marks pieces that continue a word with a ## prefix, so \"playing\" might become \"play\" and \"##ing\".",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-009",
+      "question": "What is SentencePiece?",
+      "alternateQuestions": [
+        "What is Unigram tokenization?"
+      ],
+      "answer": "SentencePiece (often with the Unigram algorithm) starts from a large vocabulary and removes the pieces that matter least. It treats input as a raw stream including spaces, which suits languages that do not separate words with spaces.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-010",
+      "question": "How big is a model's vocabulary?",
+      "alternateQuestions": [
+        "How many tokens are in a vocabulary?",
+        "What vocabulary size do models use?"
+      ],
+      "answer": "GPT-2 used about 50,000 tokens; many recent models use 100,000 to 250,000. Larger vocabularies give shorter sequences but make the embedding table and output layer larger.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-011",
+      "question": "Why can't language models count letters in a word?",
+      "alternateQuestions": [
+        "Why are models bad at spelling tasks?"
+      ],
+      "answer": "Models see tokens, not letters. A word may be a single token or a few subword pieces, so letter-level tasks such as counting or reversing characters are surprisingly hard.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-012",
+      "question": "How many characters is a token?",
+      "alternateQuestions": [
+        "How many words is a token?"
+      ],
+      "answer": "As a rough rule for English, one token is about four characters, or about three quarters of a word. Other languages can need more tokens for the same text.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-013",
+      "question": "What are special tokens?",
+      "alternateQuestions": [
+        "What is a BOS or EOS token?"
+      ],
+      "answer": "Special tokens never come from normal text. They mark things like the beginning or end of a sequence or padding, and chat models use them to separate the system prompt, user messages and assistant replies.",
+      "sourceSectionIds": [
+        "tokens"
+      ]
+    },
+    {
+      "id": "faq-014",
+      "question": "What is an embedding?",
+      "alternateQuestions": [
+        "What are embeddings?",
+        "What is a token embedding?"
+      ],
+      "answer": "An embedding is a learned vector of real numbers that represents a token. The embedding layer is a lookup table with one row per vocabulary token; embedding a token means reading the row at its ID.",
+      "sourceSectionIds": [
+        "embeddings"
+      ]
+    },
+    {
+      "id": "faq-015",
+      "question": "How are embeddings learned?",
+      "alternateQuestions": [
+        "Where do embedding values come from?"
+      ],
+      "answer": "Embedding values start random and are learned during training together with all other parameters. Tokens used in similar contexts end up with similar vectors.",
+      "sourceSectionIds": [
+        "embeddings"
+      ]
+    },
+    {
+      "id": "faq-016",
+      "question": "What is d_model?",
+      "alternateQuestions": [
+        "What is the model dimension?",
+        "What is the hidden size?"
+      ],
+      "answer": "d_model is the size of the vector that represents each token at every layer, the width of the residual stream. It was 512 in the original Transformer and 768 in GPT-2 small; large models use 4,096 to more than 12,000.",
+      "sourceSectionIds": [
+        "embeddings"
+      ]
+    },
+    {
+      "id": "faq-017",
+      "question": "What is a semantic space?",
+      "alternateQuestions": [
+        "Why are similar words close together in embeddings?"
+      ],
+      "answer": "Embeddings place tokens in a space where distance and direction carry meaning: words used in similar ways, like \"cat\" and \"dog\", are close, and relationships such as Paris–France resemble Tokyo–Japan.",
+      "sourceSectionIds": [
+        "embeddings"
+      ]
+    },
+    {
+      "id": "faq-018",
+      "question": "What is a contextual representation?",
+      "alternateQuestions": [
+        "How does the model know which meaning of a word is meant?"
+      ],
+      "answer": "Input embeddings are the same for a token in every context. Later layers, above all attention, turn them into contextual representations, so \"bank\" near \"river\" and \"bank\" near \"loan\" end up as different vectors.",
+      "sourceSectionIds": [
+        "embeddings",
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-019",
+      "question": "What are logits?",
+      "alternateQuestions": [
+        "How does the model predict the next token?",
+        "What is the output layer?"
+      ],
+      "answer": "At the top of the model, each position's final vector is multiplied by an output matrix with one row per vocabulary token, giving one score (logit) per token. A softmax turns logits into next-token probabilities.",
+      "sourceSectionIds": [
+        "embeddings",
+        "transformer-block"
+      ]
+    },
+    {
+      "id": "faq-020",
+      "question": "What are tied embeddings?",
+      "alternateQuestions": [
+        "What is weight tying?"
+      ],
+      "answer": "Many models use the same matrix for the input embedding table and the output projection. This is called tying and saves parameters.",
+      "sourceSectionIds": [
+        "embeddings"
+      ]
+    },
+    {
+      "id": "faq-021",
+      "question": "Why do Transformers need positional encoding?",
+      "alternateQuestions": [
+        "How does a Transformer know word order?"
+      ],
+      "answer": "Attention compares all tokens with each other and has no built-in sense of order, so \"the dog bit the man\" and \"the man bit the dog\" would look the same. Positional encoding tells the model where each token is.",
+      "sourceSectionIds": [
+        "positional-encoding"
+      ]
+    },
+    {
+      "id": "faq-022",
+      "question": "How do sinusoidal positional encodings work?",
+      "alternateQuestions": [
+        "What is the sinusoidal positional encoding formula?"
+      ],
+      "answer": "Each position gets a vector of sine and cosine waves at different frequencies: PE(pos, 2i) = sin(pos / 10000^(2i/d_model)) and PE(pos, 2i+1) = cos(…). It is added to the token embedding, and fixed offsets become simple linear transformations, which helps with relative distance.",
+      "sourceSectionIds": [
+        "positional-encoding"
+      ]
+    },
+    {
+      "id": "faq-023",
+      "question": "What is RoPE?",
+      "alternateQuestions": [
+        "What is rotary position embedding?",
+        "How does Llama encode positions?"
+      ],
+      "answer": "Rotary Position Embedding rotates the query and key vectors inside attention by a position-dependent angle, so their comparison depends only on relative distance. It is used by Llama, Mistral and many recent models and can be stretched to longer contexts.",
+      "sourceSectionIds": [
+        "positional-encoding",
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-024",
+      "question": "What is ALiBi?",
+      "answer": "ALiBi adds a penalty to attention scores that grows with the distance between tokens, favouring nearby tokens. It was designed to let models handle inputs longer than those seen in training.",
+      "sourceSectionIds": [
+        "positional-encoding"
+      ]
+    },
+    {
+      "id": "faq-025",
+      "question": "What are learned positional embeddings?",
+      "alternateQuestions": [
+        "How did GPT-2 encode position?"
+      ],
+      "answer": "GPT-2 and BERT learned a separate vector for each position, like token embeddings. This is simple and works well, but the model cannot handle sequences longer than the maximum trained position.",
+      "sourceSectionIds": [
+        "positional-encoding"
+      ]
+    },
+    {
+      "id": "faq-026",
+      "question": "What is attention?",
+      "alternateQuestions": [
+        "How does attention work?",
+        "What is the attention mechanism?"
+      ],
+      "answer": "Attention lets each token gather information from other tokens. It scores how relevant each token is, turns the scores into weights with softmax, and takes a weighted average of their information.",
+      "sourceSectionIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-027",
+      "question": "What is self-attention?",
+      "alternateQuestions": [
+        "What does self-attention mean?"
+      ],
+      "answer": "Self-attention is attention in which tokens attend to other tokens in the same sequence. Every attention layer in a decoder-only model is self-attention.",
+      "sourceSectionIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-028",
+      "question": "What is cross-attention?",
+      "answer": "In cross-attention, queries come from one sequence (the decoder) and keys and values come from another (the encoder's output). The original encoder-decoder Transformer used it so the translation being written could look at the source sentence.",
+      "sourceSectionIds": [
+        "attention",
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-029",
+      "question": "What is a causal mask?",
+      "alternateQuestions": [
+        "Why can't tokens see the future?",
+        "What is masked attention?"
+      ],
+      "answer": "A causal mask sets attention scores for later positions to minus infinity before the softmax, so their weights are zero. It stops a generative model from looking at the tokens it is learning to predict.",
+      "sourceSectionIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-030",
+      "question": "What is bidirectional attention?",
+      "alternateQuestions": [
+        "How does BERT attention differ from GPT?"
+      ],
+      "answer": "Encoder models like BERT use attention without a causal mask, so every token can see both earlier and later tokens. They read a whole sentence at once rather than generating it.",
+      "sourceSectionIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-031",
+      "question": "Why is attention expensive for long contexts?",
+      "alternateQuestions": [
+        "Why is attention quadratic?",
+        "What is the complexity of attention?"
+      ],
+      "answer": "Attention compares every token with every other token, so its cost grows with the square of the sequence length. Doubling the context from 4,000 to 8,000 tokens makes the attention scores four times as expensive.",
+      "sourceSectionIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-032",
+      "question": "What is FlashAttention?",
+      "alternateQuestions": [
+        "How can attention be made faster?"
+      ],
+      "answer": "FlashAttention, sliding-window attention and sparse attention are among the methods that reduce attention's cost or make it run faster on hardware. This document mentions them only briefly.",
+      "sourceSectionIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-033",
+      "question": "Can attention maps explain what a model is doing?",
+      "alternateQuestions": [
+        "Are attention heat maps reliable?"
+      ],
+      "answer": "Attention heat maps can be illuminating but should be read with care: a model has many layers and heads, and a single map rarely explains why it produced an output.",
+      "sourceSectionIds": [
+        "attention"
+      ]
+    },
+    {
+      "id": "faq-034",
+      "question": "What are queries, keys and values?",
+      "alternateQuestions": [
+        "Explain Q, K and V",
+        "What is QKV?",
+        "What are Q, K, V in attention?"
+      ],
+      "answer": "Each token gets three vectors. The query says what it is looking for, the key says what it can be matched on, and the value is the information it passes on. Queries are compared with keys to get weights, and the output is a weighted sum of values.",
+      "sourceSectionIds": [
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-035",
+      "question": "What is the attention formula?",
+      "alternateQuestions": [
+        "What is scaled dot-product attention?"
+      ],
+      "answer": "Attention(Q, K, V) = softmax(Q·Kᵀ / √d_k)·V. Query-key dot products give relevance scores, scaling by √d_k keeps them in range, softmax turns them into weights, and the weights average the values.",
+      "sourceSectionIds": [
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-036",
+      "question": "Why divide by the square root of d_k?",
+      "alternateQuestions": [
+        "Why are attention scores scaled?"
+      ],
+      "answer": "Dot products grow with the number of dimensions. Without scaling, scores become very large, the softmax puts almost all weight on one token, and its gradients become tiny, which slows learning.",
+      "sourceSectionIds": [
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-037",
+      "question": "How are Q, K and V computed?",
+      "alternateQuestions": [
+        "Where do queries, keys and values come from?"
+      ],
+      "answer": "Each token's current vector is multiplied by three learned matrices: q = x·W_Q, k = x·W_K and v = x·W_V.",
+      "sourceSectionIds": [
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-038",
+      "question": "Why use separate keys and values?",
+      "alternateQuestions": [
+        "Why not compare token vectors directly?"
+      ],
+      "answer": "What makes a token relevant can differ from the information it should contribute. Separate projections let the model learn matching (queries and keys) independently from content (values).",
+      "sourceSectionIds": [
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-039",
+      "question": "What is the library analogy for attention?",
+      "answer": "The query is what you are searching for, each book's key is its spine label, and the value is the book's contents. You compare your query with every key, then read the contents of the best matches.",
+      "sourceSectionIds": [
+        "qkv"
+      ]
+    },
+    {
+      "id": "faq-040",
+      "question": "What is multi-head attention?",
+      "alternateQuestions": [
+        "Why do Transformers use multiple heads?",
+        "What is an attention head?"
+      ],
+      "answer": "Multi-head attention runs several attention heads in parallel, each with its own Q, K and V matrices in a smaller dimension. Their outputs are concatenated and mixed by an output projection W_O, letting the model follow several relationships at once.",
+      "sourceSectionIds": [
+        "multi-head-attention"
+      ]
+    },
+    {
+      "id": "faq-041",
+      "question": "How many attention heads do models have?",
+      "alternateQuestions": [
+        "What is the head dimension?"
+      ],
+      "answer": "The original Transformer used 8 heads with d_model 512; GPT-2 small used 12 heads of dimension 64 with d_model 768; large models use 32 to 128 heads.",
+      "sourceSectionIds": [
+        "multi-head-attention"
+      ]
+    },
+    {
+      "id": "faq-042",
+      "question": "What are induction heads?",
+      "alternateQuestions": [
+        "Do attention heads specialise?"
+      ],
+      "answer": "Some heads appear to specialise, for example in syntax or attending to the previous token. Induction heads copy patterns that appeared earlier in the context and are important for in-context learning. Many heads have no clean human-readable role.",
+      "sourceSectionIds": [
+        "multi-head-attention"
+      ]
+    },
+    {
+      "id": "faq-043",
+      "question": "What is grouped-query attention?",
+      "alternateQuestions": [
+        "What is GQA?",
+        "What is multi-query attention?",
+        "What is MQA?"
+      ],
+      "answer": "In multi-query attention all query heads share one key head and one value head. Grouped-query attention splits query heads into groups that each share one key/value head, e.g. 32 query heads sharing 8. Both shrink the KV cache; Llama 2 70B and Llama 3 use GQA.",
+      "sourceSectionIds": [
+        "multi-head-attention",
+        "kv-cache"
+      ]
+    },
+    {
+      "id": "faq-044",
+      "question": "What is the output projection W_O?",
+      "answer": "After the heads' outputs are concatenated back to d_model, they are multiplied by a learned output projection W_O that mixes the heads' results together.",
+      "sourceSectionIds": [
+        "multi-head-attention"
+      ]
+    },
+    {
+      "id": "faq-045",
+      "question": "What is the feed-forward network in a Transformer?",
+      "alternateQuestions": [
+        "What is the MLP in a Transformer?",
+        "What does the FFN do?"
+      ],
+      "answer": "The feed-forward network is applied to each token independently. It expands the vector (usually to 4 × d_model), applies a non-linear activation, and projects back to d_model.",
+      "sourceSectionIds": [
+        "feed-forward"
+      ]
+    },
+    {
+      "id": "faq-046",
+      "question": "What activation functions do Transformers use?",
+      "alternateQuestions": [
+        "What is SwiGLU?",
+        "What is GELU?"
+      ],
+      "answer": "The original Transformer used ReLU; GPT-2 and BERT used GELU, a smoother version; many recent models use gated variants such as SwiGLU, which multiply two parallel projections and train slightly better.",
+      "sourceSectionIds": [
+        "feed-forward"
+      ]
+    },
+    {
+      "id": "faq-047",
+      "question": "Where does a Transformer store knowledge?",
+      "alternateQuestions": [
+        "Where are facts stored in a language model?"
+      ],
+      "answer": "Research suggests the feed-forward layers act partly as a key-value memory: the first layer detects patterns and the second writes associated information back. This appears to be one place where factual knowledge is stored.",
+      "sourceSectionIds": [
+        "feed-forward"
+      ]
+    },
+    {
+      "id": "faq-048",
+      "question": "What is a mixture of experts?",
+      "alternateQuestions": [
+        "What is MoE?"
+      ],
+      "answer": "A mixture-of-experts layer has many feed-forward networks (experts) and a router that picks only one or two per token. This increases capacity without increasing per-token computation by the same amount.",
+      "sourceSectionIds": [
+        "feed-forward"
+      ]
+    },
+    {
+      "id": "faq-049",
+      "question": "What is a residual connection?",
+      "alternateQuestions": [
+        "What is a skip connection?"
+      ],
+      "answer": "A residual connection adds a sub-layer's input to its output: x = x + SubLayer(x). Sub-layers compute updates instead of replacing the vector, and gradients flow directly through the additions, which keeps deep models trainable.",
+      "sourceSectionIds": [
+        "residuals-layer-norm"
+      ]
+    },
+    {
+      "id": "faq-050",
+      "question": "What is the residual stream?",
+      "answer": "The residual stream is the per-token vector running from the embedding at the bottom to the output at the top. Every attention and feed-forward sub-layer reads from it and adds its update back, like a shared notebook passed up the stack.",
+      "sourceSectionIds": [
+        "residuals-layer-norm"
+      ]
+    },
+    {
+      "id": "faq-051",
+      "question": "What is layer normalization?",
+      "alternateQuestions": [
+        "What does LayerNorm do?"
+      ],
+      "answer": "Layer normalization rescales each token's vector to mean zero and variance one, then applies a learned scale and shift. It keeps values in a consistent range and stabilises training.",
+      "sourceSectionIds": [
+        "residuals-layer-norm"
+      ]
+    },
+    {
+      "id": "faq-052",
+      "question": "What is the difference between pre-LN and post-LN?",
+      "alternateQuestions": [
+        "Where is layer norm placed?"
+      ],
+      "answer": "Post-LN (original) normalizes after adding the residual: x = LayerNorm(x + SubLayer(x)). Pre-LN (GPT-2 and most modern models) normalizes each sub-layer's input: x = x + SubLayer(LayerNorm(x)), which trains deep models more easily.",
+      "sourceSectionIds": [
+        "residuals-layer-norm"
+      ]
+    },
+    {
+      "id": "faq-053",
+      "question": "What is RMSNorm?",
+      "answer": "RMSNorm, used by Llama and other recent models, rescales by the root mean square of the values without subtracting the mean. It is slightly cheaper than LayerNorm and works about as well.",
+      "sourceSectionIds": [
+        "residuals-layer-norm"
+      ]
+    },
+    {
+      "id": "faq-054",
+      "question": "What is a Transformer block?",
+      "alternateQuestions": [
+        "What is a Transformer layer?"
+      ],
+      "answer": "A Transformer block combines multi-head attention and a feed-forward network, each with layer norm and a residual connection: x = x + Attention(LN(x)); x = x + FFN(LN(x)). Blocks keep the same shape and are stacked many times.",
+      "sourceSectionIds": [
+        "transformer-block"
+      ]
+    },
+    {
+      "id": "faq-055",
+      "question": "How many layers does a Transformer have?",
+      "alternateQuestions": [
+        "How many blocks are in GPT-2?"
+      ],
+      "answer": "GPT-2 small has 12 blocks; the original Transformer had 6 in the encoder and 6 in the decoder; large models use 32 to more than 100.",
+      "sourceSectionIds": [
+        "transformer-block"
+      ]
+    },
+    {
+      "id": "faq-056",
+      "question": "How does a Transformer generate text?",
+      "alternateQuestions": [
+        "How does a language model write one token at a time?"
+      ],
+      "answer": "It predicts a probability distribution for the next token, picks one (greedily or by sampling, often with a temperature), appends it to the sequence and repeats. A KV cache avoids recomputing past tokens.",
+      "sourceSectionIds": [
+        "transformer-block",
+        "kv-cache"
+      ]
+    },
+    {
+      "id": "faq-057",
+      "question": "How is a Transformer trained?",
+      "alternateQuestions": [
+        "Why is Transformer training parallel?"
+      ],
+      "answer": "During training the model sees whole sequences. Thanks to the causal mask, one pass predicts the next token at every position at once, and the loss is the average cross-entropy across positions.",
+      "sourceSectionIds": [
+        "transformer-block"
+      ]
+    },
+    {
+      "id": "faq-058",
+      "question": "How many parameters does GPT-2 small have?",
+      "alternateQuestions": [
+        "How do you estimate Transformer parameters?"
+      ],
+      "answer": "A standard block has about 12 × d_model² parameters. For GPT-2 small, 12 blocks × 12 × 768² ≈ 85 million, plus about 39 million in the embedding table, roughly 124 million in total.",
+      "sourceSectionIds": [
+        "transformer-block"
+      ]
+    },
+    {
+      "id": "faq-059",
+      "question": "What is the KV cache?",
+      "alternateQuestions": [
+        "What is the KV cache for?",
+        "Why do models use a KV cache?"
+      ],
+      "answer": "During generation, the KV cache stores the keys and values of tokens already processed, for every layer, so they are not recomputed at each step. Each new step only computes Q, K and V for the new token and attends over the cache.",
+      "sourceSectionIds": [
+        "kv-cache"
+      ]
+    },
+    {
+      "id": "faq-060",
+      "question": "Why aren't queries cached?",
+      "alternateQuestions": [
+        "Why is it called a KV cache and not a QKV cache?"
+      ],
+      "answer": "Only the newest token's query is ever used: it is compared with all cached keys. Past queries are never needed again.",
+      "sourceSectionIds": [
+        "kv-cache"
+      ]
+    },
+    {
+      "id": "faq-061",
+      "question": "What are prefill and decode?",
+      "alternateQuestions": [
+        "Why is the first token slower?"
+      ],
+      "answer": "Prefill processes the whole prompt in parallel and fills the KV cache; it is compute-heavy and determines time to first token. Decode generates one token at a time, reading the cache each step, and is usually limited by memory bandwidth.",
+      "sourceSectionIds": [
+        "kv-cache"
+      ]
+    },
+    {
+      "id": "faq-062",
+      "question": "How much memory does the KV cache use?",
+      "alternateQuestions": [
+        "How big is the KV cache?"
+      ],
+      "answer": "Size = 2 × layers × KV heads × head dimension × sequence length × bytes per value. For Llama 2 7B with 16-bit values that is about 0.5 MB per token, or about 2 GB for a 4,096-token context.",
+      "sourceSectionIds": [
+        "kv-cache"
+      ]
+    },
+    {
+      "id": "faq-063",
+      "question": "How can the KV cache be made smaller?",
+      "alternateQuestions": [
+        "What is paged attention?",
+        "What is prefix caching?"
+      ],
+      "answer": "Common methods are grouped-query or multi-query attention, quantizing the cache to 8 or 4 bits, paged attention (as in vLLM), prompt prefix caching, and sliding-window attention.",
+      "sourceSectionIds": [
+        "kv-cache",
+        "multi-head-attention"
+      ]
+    },
+    {
+      "id": "faq-064",
+      "question": "Does the KV cache change the model's output?",
+      "answer": "No. The KV cache is a pure speed optimisation: the model computes exactly the same result with or without it.",
+      "sourceSectionIds": [
+        "kv-cache"
+      ]
+    }
+  ]
+}

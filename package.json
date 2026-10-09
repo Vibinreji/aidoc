@@ -1,0 +1,31 @@
+{
+  "name": "aidoc-monorepo",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "example": "node packages/cli/dist/aidoc.js build examples/transformer -o dist/transformer.ai.html",
+    "inspect": "node packages/cli/dist/aidoc.js inspect dist/transformer.ai.html",
+    "test": "vitest run",
+    "test:e2e": "playwright test -c tests/e2e",
+    "test:platform": "playwright test -c tests/platform",
+    "typecheck": "tsc -p tsconfig.json",
+    "calibrate": "node benchmarks/calibrate.ts 128",
+    "bench:scale": "node benchmarks/scale.ts 25"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@types/node": "24",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "esbuild": "0.28.2",
+    "hast-util-to-html": "9.0.5",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aidoc.dev/schema/0.1/embedder-header.json",
+  "title": "aidoc 0.1 embedder header",
+  "description": "UTF-8 JSON header inside the binary application/aidoc-embedder payload (after the \"AIDE\" magic and u32 headerLength). Licence: CC BY 4.0.",
+  "type": "object",
+  "required": ["format", "model", "license", "dims", "rows", "pca", "tokenizer", "pooling"],
+  "properties": {
+    "format": { "const": "aidoc-embedder-v1" },
+    "model": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "license": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "dims": { "type": "integer", "minimum": 1, "maximum": 1024 },
+    "rows": { "type": "integer", "minimum": 1, "maximum": 100000 },
+    "pca": {
+      "oneOf": [
+        { "type": "integer", "minimum": 1, "maximum": 1024 },
+        { "type": "null" }
+      ]
+    },
+    "tokenizer": {
+      "type": "object",
+      "required": [
+        "type", "lowercase", "stripAccents", "handleChineseChars", "cleanText",
+        "unkToken", "continuingSubwordPrefix", "maxInputCharsPerWord", "vocab"
+      ],
+      "properties": {
+        "type": { "const": "bert-wordpiece" },
+        "lowercase": { "const": true },
+        "stripAccents": { "const": true },
+        "handleChineseChars": { "const": true },
+        "cleanText": { "const": true },
+        "unkToken": { "const": "[UNK]" },
+        "continuingSubwordPrefix": { "const": "##" },
+        "maxInputCharsPerWord": { "const": 100 },
+        "vocab": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100000,
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false
+    },
+    "rowMap": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": { "type": "integer", "minimum": -1, "maximum": 99999 }
+    },
+    "pooling": {
+      "type": "object",
+      "required": ["dropUnk", "specialTokens", "maxTokens", "method", "normalize"],
+      "properties": {
+        "dropUnk": { "const": true },
+        "specialTokens": { "const": false },
+        "maxTokens": { "const": 512 },
+        "method": { "const": "mean" },
+        "normalize": { "const": "l2" }
+      },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": { "^x-": true },
+  "additionalProperties": false
+}

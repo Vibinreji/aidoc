@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aidoc.dev/schema/0.1/bm25.json",
+  "title": "aidoc 0.1 BM25 index",
+  "description": "Decoded content of the optional application/aidoc-bm25+json data block. Each postings value is a flat list of (chunkIndex, tf) pairs with strictly ascending chunkIndex; pair structure and ordering are checked by validators, not by this schema. Licence: CC BY 4.0.",
+  "type": "object",
+  "required": ["analyzer", "k1", "b", "docCount", "avgdl", "docLengths", "postings"],
+  "properties": {
+    "analyzer": { "const": "aidoc-word-v1" },
+    "k1": { "const": 1.2 },
+    "b": { "const": 0.75 },
+    "docCount": { "type": "integer", "minimum": 1, "maximum": 20000 },
+    "avgdl": { "type": "number", "minimum": 0 },
+    "docLengths": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20000,
+      "items": { "type": "integer", "minimum": 0 }
+    },
+    "postings": {
+      "type": "object",
+      "maxProperties": 500000,
+      "propertyNames": { "minLength": 1, "maxLength": 100 },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 2,
+        "items": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "patternProperties": { "^x-": true },
+  "additionalProperties": false
+}

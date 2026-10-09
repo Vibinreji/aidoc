@@ -1,0 +1,8 @@
+{
+  "name": "@aidoc/cli",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": { "aidoc": "./dist/aidoc.js" },
+  "dependencies": { "@aidoc/core": "workspace:*", "@aidoc/runtime": "workspace:*" }
+}

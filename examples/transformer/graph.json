@@ -1,0 +1,604 @@
+{
+  "nodes": [
+    {
+      "id": "transformer",
+      "label": "Transformer",
+      "aliases": [
+        "transformers",
+        "transformer architecture"
+      ],
+      "sectionId": "overview"
+    },
+    {
+      "id": "rnn",
+      "label": "Recurrent neural network",
+      "aliases": [
+        "RNN",
+        "RNNs",
+        "recurrent network",
+        "recurrence"
+      ],
+      "sectionId": "overview"
+    },
+    {
+      "id": "decoder-only",
+      "label": "Decoder-only model",
+      "aliases": [
+        "decoder-only",
+        "GPT",
+        "causal language model",
+        "autoregressive model"
+      ],
+      "sectionId": "overview"
+    },
+    {
+      "id": "encoder-decoder",
+      "label": "Encoder-decoder",
+      "aliases": [
+        "encoder",
+        "decoder",
+        "original transformer"
+      ],
+      "sectionId": "overview"
+    },
+    {
+      "id": "token",
+      "label": "Token",
+      "aliases": [
+        "tokens",
+        "token ID",
+        "token IDs"
+      ],
+      "sectionId": "tokens"
+    },
+    {
+      "id": "tokenizer",
+      "label": "Tokenizer",
+      "aliases": [
+        "tokenization",
+        "subword tokenization"
+      ],
+      "sectionId": "tokens"
+    },
+    {
+      "id": "vocabulary",
+      "label": "Vocabulary",
+      "aliases": [
+        "vocab",
+        "vocabulary size"
+      ],
+      "sectionId": "tokens"
+    },
+    {
+      "id": "bpe",
+      "label": "Byte-Pair Encoding",
+      "aliases": [
+        "BPE",
+        "byte pair encoding"
+      ],
+      "sectionId": "tokens"
+    },
+    {
+      "id": "wordpiece",
+      "label": "WordPiece",
+      "aliases": [
+        "word piece"
+      ],
+      "sectionId": "tokens"
+    },
+    {
+      "id": "embedding",
+      "label": "Embedding",
+      "aliases": [
+        "embeddings",
+        "token embedding",
+        "embedding table",
+        "embedding layer"
+      ],
+      "sectionId": "embeddings"
+    },
+    {
+      "id": "d-model",
+      "label": "d_model",
+      "aliases": [
+        "model dimension",
+        "hidden size",
+        "dmodel"
+      ],
+      "sectionId": "embeddings"
+    },
+    {
+      "id": "lm-head",
+      "label": "Output projection (LM head)",
+      "aliases": [
+        "LM head",
+        "unembedding",
+        "logits",
+        "output layer"
+      ],
+      "sectionId": "transformer-block"
+    },
+    {
+      "id": "softmax",
+      "label": "Softmax",
+      "aliases": [],
+      "sectionId": "attention"
+    },
+    {
+      "id": "positional-encoding",
+      "label": "Positional encoding",
+      "aliases": [
+        "positional encodings",
+        "position embedding",
+        "positional embedding",
+        "positions",
+        "sinusoidal encoding"
+      ],
+      "sectionId": "positional-encoding"
+    },
+    {
+      "id": "rope",
+      "label": "RoPE",
+      "aliases": [
+        "rotary position embedding",
+        "rotary embeddings"
+      ],
+      "sectionId": "positional-encoding"
+    },
+    {
+      "id": "alibi",
+      "label": "ALiBi",
+      "aliases": [],
+      "sectionId": "positional-encoding"
+    },
+    {
+      "id": "attention",
+      "label": "Attention",
+      "aliases": [
+        "attention mechanism"
+      ],
+      "sectionId": "attention"
+    },
+    {
+      "id": "self-attention",
+      "label": "Self-attention",
+      "aliases": [
+        "self attention"
+      ],
+      "sectionId": "attention"
+    },
+    {
+      "id": "cross-attention",
+      "label": "Cross-attention",
+      "aliases": [
+        "cross attention"
+      ],
+      "sectionId": "attention"
+    },
+    {
+      "id": "causal-mask",
+      "label": "Causal mask",
+      "aliases": [
+        "masking",
+        "masked attention",
+        "causal masking"
+      ],
+      "sectionId": "attention"
+    },
+    {
+      "id": "query",
+      "label": "Query",
+      "aliases": [
+        "queries",
+        "Q",
+        "W_Q"
+      ],
+      "sectionId": "qkv"
+    },
+    {
+      "id": "key",
+      "label": "Key",
+      "aliases": [
+        "keys",
+        "K",
+        "W_K"
+      ],
+      "sectionId": "qkv"
+    },
+    {
+      "id": "value",
+      "label": "Value",
+      "aliases": [
+        "values",
+        "V",
+        "W_V"
+      ],
+      "sectionId": "qkv"
+    },
+    {
+      "id": "qkv",
+      "label": "Queries, keys and values",
+      "aliases": [
+        "QKV",
+        "Q/K/V",
+        "Q, K and V",
+        "Q K V"
+      ],
+      "sectionId": "qkv"
+    },
+    {
+      "id": "scaled-dot-product",
+      "label": "Scaled dot-product attention",
+      "aliases": [
+        "dot-product attention",
+        "attention formula",
+        "sqrt d_k"
+      ],
+      "sectionId": "qkv"
+    },
+    {
+      "id": "multi-head-attention",
+      "label": "Multi-head attention",
+      "aliases": [
+        "multi-head",
+        "attention heads",
+        "heads",
+        "MHA"
+      ],
+      "sectionId": "multi-head-attention"
+    },
+    {
+      "id": "gqa",
+      "label": "Grouped-query attention",
+      "aliases": [
+        "GQA",
+        "MQA",
+        "multi-query attention"
+      ],
+      "sectionId": "multi-head-attention"
+    },
+    {
+      "id": "feed-forward",
+      "label": "Feed-forward network",
+      "aliases": [
+        "FFN",
+        "MLP",
+        "feed forward",
+        "feedforward"
+      ],
+      "sectionId": "feed-forward"
+    },
+    {
+      "id": "moe",
+      "label": "Mixture of experts",
+      "aliases": [
+        "MoE",
+        "experts"
+      ],
+      "sectionId": "feed-forward"
+    },
+    {
+      "id": "residual",
+      "label": "Residual connection",
+      "aliases": [
+        "residual connections",
+        "residuals",
+        "skip connection"
+      ],
+      "sectionId": "residuals-layer-norm"
+    },
+    {
+      "id": "residual-stream",
+      "label": "Residual stream",
+      "aliases": [],
+      "sectionId": "residuals-layer-norm"
+    },
+    {
+      "id": "layer-norm",
+      "label": "Layer normalization",
+      "aliases": [
+        "layer norm",
+        "LayerNorm",
+        "RMSNorm",
+        "normalization",
+        "pre-LN",
+        "post-LN"
+      ],
+      "sectionId": "residuals-layer-norm"
+    },
+    {
+      "id": "transformer-block",
+      "label": "Transformer block",
+      "aliases": [
+        "block",
+        "blocks",
+        "layer",
+        "layers",
+        "transformer layer"
+      ],
+      "sectionId": "transformer-block"
+    },
+    {
+      "id": "generation",
+      "label": "Text generation",
+      "aliases": [
+        "generation",
+        "decoding",
+        "sampling",
+        "next-token prediction"
+      ],
+      "sectionId": "transformer-block"
+    },
+    {
+      "id": "kv-cache",
+      "label": "KV cache",
+      "aliases": [
+        "key-value cache",
+        "kv-cache",
+        "KV caching"
+      ],
+      "sectionId": "kv-cache"
+    },
+    {
+      "id": "prefill-decode",
+      "label": "Prefill and decode",
+      "aliases": [
+        "prefill",
+        "decode phase"
+      ],
+      "sectionId": "kv-cache"
+    }
+  ],
+  "edges": [
+    {
+      "from": "attention",
+      "to": "rnn",
+      "relation": "replaced"
+    },
+    {
+      "from": "attention",
+      "to": "transformer",
+      "relation": "is the core of"
+    },
+    {
+      "from": "decoder-only",
+      "to": "encoder-decoder",
+      "relation": "keeps only the decoder of"
+    },
+    {
+      "from": "tokenizer",
+      "to": "token",
+      "relation": "produces"
+    },
+    {
+      "from": "token",
+      "to": "vocabulary",
+      "relation": "is an entry in"
+    },
+    {
+      "from": "bpe",
+      "to": "tokenizer",
+      "relation": "is a kind of"
+    },
+    {
+      "from": "wordpiece",
+      "to": "tokenizer",
+      "relation": "is a kind of"
+    },
+    {
+      "from": "token",
+      "to": "embedding",
+      "relation": "is looked up in"
+    },
+    {
+      "from": "d-model",
+      "to": "embedding",
+      "relation": "is the size of"
+    },
+    {
+      "from": "embedding",
+      "to": "transformer-block",
+      "relation": "is input to"
+    },
+    {
+      "from": "attention",
+      "to": "embedding",
+      "relation": "turns into contextual representations"
+    },
+    {
+      "from": "positional-encoding",
+      "to": "embedding",
+      "relation": "is added to"
+    },
+    {
+      "from": "rope",
+      "to": "positional-encoding",
+      "relation": "is a kind of"
+    },
+    {
+      "from": "alibi",
+      "to": "positional-encoding",
+      "relation": "is a kind of"
+    },
+    {
+      "from": "rope",
+      "to": "query",
+      "relation": "rotates"
+    },
+    {
+      "from": "rope",
+      "to": "key",
+      "relation": "rotates"
+    },
+    {
+      "from": "positional-encoding",
+      "to": "attention",
+      "relation": "gives word order to"
+    },
+    {
+      "from": "self-attention",
+      "to": "attention",
+      "relation": "is a kind of"
+    },
+    {
+      "from": "cross-attention",
+      "to": "attention",
+      "relation": "is a kind of"
+    },
+    {
+      "from": "cross-attention",
+      "to": "encoder-decoder",
+      "relation": "is used in"
+    },
+    {
+      "from": "causal-mask",
+      "to": "self-attention",
+      "relation": "restricts"
+    },
+    {
+      "from": "softmax",
+      "to": "attention",
+      "relation": "turns scores into weights in"
+    },
+    {
+      "from": "embedding",
+      "to": "qkv",
+      "relation": "is projected into"
+    },
+    {
+      "from": "query",
+      "to": "qkv",
+      "relation": "is part of"
+    },
+    {
+      "from": "key",
+      "to": "qkv",
+      "relation": "is part of"
+    },
+    {
+      "from": "value",
+      "to": "qkv",
+      "relation": "is part of"
+    },
+    {
+      "from": "qkv",
+      "to": "scaled-dot-product",
+      "relation": "is input to"
+    },
+    {
+      "from": "scaled-dot-product",
+      "to": "attention",
+      "relation": "computes"
+    },
+    {
+      "from": "query",
+      "to": "key",
+      "relation": "is compared with"
+    },
+    {
+      "from": "multi-head-attention",
+      "to": "self-attention",
+      "relation": "runs several heads of"
+    },
+    {
+      "from": "gqa",
+      "to": "multi-head-attention",
+      "relation": "is a variant of"
+    },
+    {
+      "from": "gqa",
+      "to": "kv-cache",
+      "relation": "shrinks"
+    },
+    {
+      "from": "multi-head-attention",
+      "to": "transformer-block",
+      "relation": "is part of"
+    },
+    {
+      "from": "feed-forward",
+      "to": "transformer-block",
+      "relation": "is part of"
+    },
+    {
+      "from": "moe",
+      "to": "feed-forward",
+      "relation": "replaces"
+    },
+    {
+      "from": "residual",
+      "to": "transformer-block",
+      "relation": "is part of"
+    },
+    {
+      "from": "layer-norm",
+      "to": "transformer-block",
+      "relation": "is part of"
+    },
+    {
+      "from": "residual",
+      "to": "residual-stream",
+      "relation": "creates"
+    },
+    {
+      "from": "d-model",
+      "to": "residual-stream",
+      "relation": "is the width of"
+    },
+    {
+      "from": "transformer-block",
+      "to": "transformer",
+      "relation": "is stacked to form"
+    },
+    {
+      "from": "transformer-block",
+      "to": "lm-head",
+      "relation": "feeds"
+    },
+    {
+      "from": "lm-head",
+      "to": "embedding",
+      "relation": "is often tied to"
+    },
+    {
+      "from": "lm-head",
+      "to": "softmax",
+      "relation": "produces logits for"
+    },
+    {
+      "from": "lm-head",
+      "to": "vocabulary",
+      "relation": "scores every entry of"
+    },
+    {
+      "from": "generation",
+      "to": "lm-head",
+      "relation": "samples from"
+    },
+    {
+      "from": "kv-cache",
+      "to": "key",
+      "relation": "stores"
+    },
+    {
+      "from": "kv-cache",
+      "to": "value",
+      "relation": "stores"
+    },
+    {
+      "from": "kv-cache",
+      "to": "generation",
+      "relation": "speeds up"
+    },
+    {
+      "from": "causal-mask",
+      "to": "kv-cache",
+      "relation": "makes possible"
+    },
+    {
+      "from": "prefill-decode",
+      "to": "kv-cache",
+      "relation": "fills and reads"
+    }
+  ]
+}

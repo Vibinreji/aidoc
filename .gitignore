@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.cache/
+test-results/
+playwright-report/
+*.log
+.DS_Store
+tests/platform/.results/
+tests/e2e/.results/
