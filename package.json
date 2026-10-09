@@ -16,7 +16,8 @@
     "test:platform": "playwright test -c tests/platform",
     "typecheck": "tsc -p tsconfig.json",
     "calibrate": "node benchmarks/calibrate.ts 128",
-    "bench:scale": "node benchmarks/scale.ts 25"
+    "bench:scale": "node benchmarks/scale.ts 25",
+    "demo": "node packages/cli/dist/aidoc.js build examples/transformer -o demo/transformer.ai.html"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",
